@@ -14,7 +14,7 @@ pub mut:
 	nodes     map[string]Node
 	edges     map[string][]string
 	rev_edges map[string][]string
-	cache     map[string][]string
+	cache     map[string][]string @[json: '-']
 }
 
 pub fn new_graph() Graph {
