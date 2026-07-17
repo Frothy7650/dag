@@ -1,4 +1,4 @@
-module store
+module dag
 
 import json
 
