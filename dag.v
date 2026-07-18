@@ -168,7 +168,7 @@ pub fn (mut g Graph) install_order(root string) ![]string {
 }
 
 // Serialization to/from JSON using V's built-in JSON support.
-pub fn (g &Graph) to_json() string {
+pub fn (g Graph) to_json() string {
 	return json2.encode(g)
 }
 
