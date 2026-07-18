@@ -1,6 +1,6 @@
 module dag
 
-import json2
+import json
 
 pub struct Node {
 pub mut:
@@ -168,12 +168,12 @@ pub fn (mut g Graph) install_order(root string) ![]string {
 }
 
 // Serialization to/from JSON using V's built-in JSON support.
-pub fn (g Graph) to_json() string {
-	return json2.encode(g)
+pub fn (g &Graph) to_json() string {
+	return json.encode(g)
 }
 
 pub fn (mut g Graph) from_json(data string) ! {
-	temp := json2.decode[Graph](data)!
+	temp := json.decode(Graph, data)!
 	g.nodes = temp.nodes.clone()
 	g.edges = temp.edges.clone()
 	// Rebuild reverse edges
