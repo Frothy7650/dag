@@ -4,9 +4,9 @@ import json2
 
 pub struct Node {
 pub mut:
-	id       string
-	version  string
-	metadata map[string]string
+	id      string
+	version string
+	source  string
 }
 
 pub struct Graph {
@@ -26,12 +26,14 @@ pub fn new_graph() Graph {
 	}
 }
 
-pub fn (mut g Graph) add_node(id string, version string) bool {
-	if id in g.nodes { return false }
+pub fn (mut g Graph) add_node(id string, version string, source string) bool {
+	if id in g.nodes {
+		return false
+	}
 	g.nodes[id] = Node{
-		id:       id
-		version:  version
-		metadata: map[string]string{}
+		id:      id
+		version: version
+		source:  source
 	}
 	g.edges[id] = []string{}
 	g.rev_edges[id] = []string{}
@@ -45,7 +47,7 @@ pub fn (mut g Graph) add_edge(from string, to string) ! {
 	}
 	g.edges[from] << to
 	g.rev_edges[to] << from
-	g.topological_sort() or { // Check for cycle
+	g.topological_sort() or {
 		// revert on cycle
 		g.edges[from].pop()
 		g.rev_edges[to].pop()
@@ -89,7 +91,6 @@ pub fn (g &Graph) topological_sort() ![]string {
 	return order
 }
 
-// Queries (ancestors, descendants, deps) are DFS or direct map lookups.
 pub fn (g &Graph) ancestors(id string) []string {
 	mut visited := map[string]bool{}
 	mut stack := [id]
@@ -140,7 +141,6 @@ pub fn (mut g Graph) install_order(root string) ![]string {
 	if root in g.cache {
 		return g.cache[root]
 	}
-	// Build subgraph of ancestors + root
 	mut deps := g.ancestors(root)
 	deps << root
 	mut subg := Graph{
@@ -167,7 +167,6 @@ pub fn (mut g Graph) install_order(root string) ![]string {
 	return order
 }
 
-// Serialization to/from JSON using V's built-in JSON support.
 pub fn (g &Graph) as_json() string {
 	return json2.encode(g)
 }
@@ -176,7 +175,6 @@ pub fn (mut g Graph) from_json(data string) ! {
 	temp := json2.decode[Graph](data)!
 	g.nodes = temp.nodes.clone()
 	g.edges = temp.edges.clone()
-	// Rebuild reverse edges
 	g.rev_edges = map[string][]string{}
 	for id in g.nodes.keys() {
 		g.rev_edges[id] = []string{}
