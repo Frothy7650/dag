@@ -62,9 +62,9 @@ pub fn (g &Graph) topological_sort() ![]string {
 	for id in g.nodes.keys() {
 		in_degree[id] = 0
 	}
-	for _, deps in g.edges {
-		for to in deps {
-			in_degree[to]++
+	for _, dependents in g.rev_edges {
+		for dependent in dependents {
+			in_degree[dependent]++
 		}
 	}
 	mut queue := []string{}
@@ -78,10 +78,10 @@ pub fn (g &Graph) topological_sort() ![]string {
 		node := queue[0]
 		queue.delete(0)
 		order << node
-		for neigh in g.edges[node] {
-			in_degree[neigh]--
-			if in_degree[neigh] == 0 {
-				queue << neigh
+		for dependent in g.rev_edges[node] {
+			in_degree[dependent]--
+			if in_degree[dependent] == 0 {
+				queue << dependent
 			}
 		}
 	}
@@ -141,7 +141,7 @@ pub fn (mut g Graph) install_order(root string) ![]string {
 	if root in g.cache {
 		return g.cache[root]
 	}
-	mut deps := g.ancestors(root)
+	mut deps := g.dependencies(root)
 	deps << root
 	mut subg := Graph{
 		nodes:     map[string]Node{}
@@ -185,4 +185,24 @@ pub fn (mut g Graph) from_json(data string) ! {
 		}
 	}
 	g.cache = map[string][]string{}
+}
+
+pub fn (g &Graph) dependencies(id string) []string {
+    mut visited := map[string]bool{}
+    mut stack := [id]
+    mut result := []string{}
+
+    for stack.len > 0 {
+        v := stack.pop()
+
+        for dep in g.edges[v] {
+            if dep !in visited {
+                visited[dep] = true
+                result << dep
+                stack << dep
+            }
+        }
+    }
+
+    return result
 }
